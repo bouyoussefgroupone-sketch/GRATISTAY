@@ -40,6 +40,8 @@ export function AccountShell({
     email: "",
     password: "",
   });
+  const downloadableBooking =
+    bookingRecords.find((booking) => booking.paymentStatus === "paid") ?? bookingRecords[0];
 
   useEffect(() => {
     const syncUser = () => setCurrentUser(getCurrentDemoUser());
@@ -288,8 +290,14 @@ export function AccountShell({
       </div>
 
       {paymentState === "success" ? (
-        <div className="rounded-[24px] bg-[var(--brand-50)] px-5 py-4 text-sm font-medium text-[var(--brand-800)]">
-          Paiement demo valide. Le parcours client est maintenant testable de bout en bout.
+        <div className="flex flex-col gap-3 rounded-[24px] bg-[var(--brand-50)] px-5 py-4 text-sm font-medium text-[var(--brand-800)] md:flex-row md:items-center md:justify-between">
+          <span>Paiement demo valide. Le parcours client est maintenant testable de bout en bout.</span>
+          <a
+            href={`/api/demo-pdf?reference=${encodeURIComponent(downloadableBooking.reference)}`}
+            className="inline-flex items-center justify-center rounded-xl bg-[var(--brand-800)] px-4 py-3 text-sm font-semibold text-white"
+          >
+            Telecharger le carnet PDF
+          </a>
         </div>
       ) : null}
 
@@ -323,10 +331,20 @@ export function AccountShell({
               <div className="text-lg font-semibold text-[var(--ink-950)]">
                 {formatCurrency(booking.totalPaid)}
               </div>
-              <button className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-800)] px-4 py-2 text-sm font-semibold text-white">
-                <Download className="h-4 w-4" />
-                PDF
-              </button>
+              {booking.paymentStatus === "paid" ? (
+                <a
+                  href={`/api/demo-pdf?reference=${encodeURIComponent(booking.reference)}`}
+                  className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-800)] px-4 py-2 text-sm font-semibold text-white"
+                >
+                  <Download className="h-4 w-4" />
+                  PDF
+                </a>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-muted)] px-4 py-2 text-sm font-semibold text-[var(--ink-600)]">
+                  <Download className="h-4 w-4" />
+                  PDF en attente
+                </span>
+              )}
             </div>
           </article>
         ))}
