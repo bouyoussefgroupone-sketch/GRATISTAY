@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { CalendarDays, MapPin, Users } from "lucide-react";
 import { PuzzleWidget } from "@/components/puzzle-widget";
+import { buildRouteWithParams } from "@/lib/travel";
 import { formatCurrency, formatDateRange } from "@/lib/format";
 import type { Hotel, PuzzleResult } from "@/types/domain";
 
@@ -9,19 +11,28 @@ export function StickyBonusSummary({
   start,
   end,
   travelers,
+  selectedIds,
 }: {
   hotel: Hotel;
   result: PuzzleResult;
   start: string;
   end: string;
   travelers: number;
+  selectedIds: string[];
 }) {
   const visibleRequirements = result.requirements.filter(
     (requirement) => requirement.visibleToCustomer,
   );
+  const cartHref = buildRouteWithParams("/cart", {
+    hotel: hotel.slug,
+    travelers,
+    start,
+    end,
+    selected: selectedIds.join(","),
+  });
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[var(--surface)] shadow-[0_20px_60px_rgba(15,23,40,0.10)]">
+    <div className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow-strong)]">
       <div className="space-y-4 p-4">
         <div className="rounded-[24px] border border-[var(--line)] bg-[var(--surface-muted)] p-4">
           <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--ink-500)]">
@@ -78,15 +89,16 @@ export function StickyBonusSummary({
           </div>
         </div>
 
-        <button
+        <Link
+          href={cartHref}
           className={`inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold transition ${
             result.unlocked
-              ? "bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)]"
+              ? "bg-[var(--brand-800)] text-white hover:bg-[var(--brand-700)]"
               : "bg-[var(--surface-strong)] text-[var(--ink-700)]"
           }`}
         >
-          Continuer
-        </button>
+          Continuer vers le panier
+        </Link>
       </div>
     </div>
   );

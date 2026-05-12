@@ -13,7 +13,7 @@ export function ActivityListCard({
   onToggle: (activityId: string) => void;
 }) {
   return (
-    <article className="overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface)] shadow-sm">
+    <article className="overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
       <div className="grid gap-0 lg:grid-cols-[132px_1fr_auto]">
         <div className="relative min-h-28">
           <Image
@@ -66,8 +66,8 @@ export function ActivityListCard({
             onClick={() => onToggle(activity.id)}
             className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
               selected
-                ? "bg-[var(--brand-50)] text-[var(--brand-700)]"
-                : "bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)]"
+                ? "bg-[var(--brand-50)] text-[var(--brand-800)]"
+                : "bg-[var(--brand-800)] text-white hover:bg-[var(--brand-700)]"
             }`}
           >
             <Plus className={`h-4 w-4 ${selected ? "rotate-45" : ""}`} />

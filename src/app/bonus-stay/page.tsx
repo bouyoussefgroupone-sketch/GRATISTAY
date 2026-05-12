@@ -2,9 +2,14 @@ import { PuzzleBuilder } from "@/components/puzzle-builder";
 import { SiteFrame } from "@/components/site-frame";
 import { highlightedSelectionIds } from "@/data/demo-data";
 import { findHotelOrFallback, getActivitiesByDestination } from "@/lib/catalog";
+import { clampTravelers, normalizeTravelWindow } from "@/lib/travel";
 
 function getString(value: string | string[] | undefined, fallback: string) {
   return typeof value === "string" ? value : fallback;
+}
+
+function getOptionalString(value: string | string[] | undefined) {
+  return typeof value === "string" ? value : undefined;
 }
 
 export default async function BonusStayPage({
@@ -14,9 +19,10 @@ export default async function BonusStayPage({
 }) {
   const params = await searchParams;
   const hotel = findHotelOrFallback(getString(params.hotel, "riad-horizon-marrakech"));
-  const travelers = Number(getString(params.travelers, "2"));
-  const start = getString(params.start, "2026-06-14");
-  const end = getString(params.end, "2026-06-17");
+  const travelers = clampTravelers(getString(params.travelers, "2"));
+  const normalizedWindow = normalizeTravelWindow(getOptionalString(params.start), getOptionalString(params.end));
+  const start = normalizedWindow.start;
+  const end = normalizedWindow.end;
   const destinationActivities = getActivitiesByDestination(hotel.destinationSlug);
   const initialSelection = highlightedSelectionIds.filter((activityId) =>
     destinationActivities.some((activity) => activity.id === activityId),

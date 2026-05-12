@@ -1,4 +1,5 @@
 import { SiteFrame } from "@/components/site-frame";
+import { SupportForm } from "@/components/support-form";
 import { supportTickets } from "@/data/demo-data";
 import { formatFriendlyDate, supportTone } from "@/lib/format";
 
@@ -40,27 +41,7 @@ export default function SupportPage() {
 
           <aside className="rounded-[28px] border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm">
             <div className="text-xl font-semibold text-[var(--ink-950)]">Nouveau ticket</div>
-            <div className="mt-5 grid gap-4">
-              <input
-                className="rounded-2xl border border-[var(--line)] bg-[var(--surface-muted)] px-4 py-3 outline-none"
-                placeholder="Sujet"
-              />
-              <select className="rounded-2xl border border-[var(--line)] bg-[var(--surface-muted)] px-4 py-3 outline-none">
-                <option>Probleme de paiement</option>
-                <option>Modification reservation</option>
-                <option>Annulation</option>
-                <option>Probleme activite</option>
-                <option>Probleme hotel</option>
-                <option>Demande d&apos;information</option>
-              </select>
-              <textarea
-                className="min-h-40 rounded-2xl border border-[var(--line)] bg-[var(--surface-muted)] px-4 py-3 outline-none"
-                placeholder="Expliquez votre demande"
-              />
-              <button className="rounded-2xl bg-[var(--brand-700)] px-4 py-3 text-sm font-semibold text-white">
-                Envoyer au support
-              </button>
-            </div>
+            <SupportForm />
           </aside>
         </div>
       </section>

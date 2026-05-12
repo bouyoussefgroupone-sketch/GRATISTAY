@@ -1,13 +1,47 @@
 "use client";
 
 import { useDeferredValue, useState, useTransition } from "react";
-import { Search } from "lucide-react";
+import {
+  BusFront,
+  ChefHat,
+  Landmark,
+  Search,
+  Sparkles,
+  Waves,
+} from "lucide-react";
 import { ActivityListCard } from "@/components/activity-list-card";
 import { StickyBonusSummary } from "@/components/sticky-bonus-summary";
 import { categories } from "@/data/demo-data";
-import { formatCurrency } from "@/lib/format";
 import { computePuzzleProgress } from "@/lib/puzzle-engine";
 import type { Activity, Hotel } from "@/types/domain";
+
+const categoryPresentation = {
+  ESSENTIALS: {
+    icon: BusFront,
+    accent: "var(--brand-700)",
+    copy: "Base du sejour",
+  },
+  TOURS: {
+    icon: Landmark,
+    accent: "var(--teal-500)",
+    copy: "Visites et culture",
+  },
+  ADVENTURE: {
+    icon: Waves,
+    accent: "var(--gold-500)",
+    copy: "Outdoor et sport",
+  },
+  GASTRONOMY: {
+    icon: ChefHat,
+    accent: "var(--rose-500)",
+    copy: "Tables et experiences",
+  },
+  WORKSHOPS: {
+    icon: Sparkles,
+    accent: "var(--ink-700)",
+    copy: "Ateliers locaux",
+  },
+} as const;
 
 export function PuzzleBuilder({
   hotel,
@@ -69,6 +103,11 @@ export function PuzzleBuilder({
                 Choisissez vos activites
               </h1>
               <p className="mt-1 text-sm text-[var(--ink-700)]">Ajoutez vos experiences.</p>
+              {isPending ? (
+                <div className="mt-2 text-xs font-medium text-[var(--ink-600)]">
+                  Progression en cours de recalcul...
+                </div>
+              ) : null}
             </div>
 
             <label className="flex min-w-72 items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--ink-700)]">
@@ -82,32 +121,69 @@ export function PuzzleBuilder({
             </label>
           </div>
 
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-5 flex gap-3 overflow-x-auto pb-1">
             {categories.map((category) => {
               const count = selectedIds.filter((id) =>
                 activities.some(
                   (activity) => activity.id === id && activity.categoryKey === category.key,
                 ),
               ).length;
+              const presentation = categoryPresentation[category.key];
+              const CategoryIcon = presentation.icon;
+              const active = activeCategory === category.key;
 
               return (
                 <button
                   key={category.key}
                   onClick={() => setActiveCategory(category.key)}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                    activeCategory === category.key
-                      ? "border-[var(--brand-700)] bg-[var(--brand-50)] text-[var(--brand-700)]"
-                      : "border-[var(--line)] bg-[var(--surface)] text-[var(--ink-700)]"
+                  className={`min-w-[188px] rounded-[22px] border p-4 text-left transition ${
+                    active
+                      ? "bg-[var(--surface)] shadow-[var(--shadow-soft)]"
+                      : "bg-[var(--surface-muted)] text-[var(--ink-700)]"
                   }`}
+                  style={{
+                    borderColor: active ? presentation.accent : "var(--line)",
+                  }}
                 >
-                  {category.name} ({count})
+                  <div className="flex items-start justify-between gap-3">
+                    <div
+                      className="grid h-11 w-11 place-items-center rounded-2xl text-white"
+                      style={{ backgroundColor: presentation.accent }}
+                    >
+                      <CategoryIcon className="h-5 w-5" />
+                    </div>
+                    <div
+                      className="rounded-full px-2.5 py-1 text-xs font-semibold"
+                      style={{
+                        backgroundColor: active ? presentation.accent : "var(--surface)",
+                        color: active ? "white" : "var(--ink-700)",
+                      }}
+                    >
+                      {count}
+                    </div>
+                  </div>
+                  <div className="mt-4 text-sm font-semibold text-[var(--ink-950)]">
+                    {category.name}
+                  </div>
+                  <div className="mt-1 text-xs text-[var(--ink-600)]">{presentation.copy}</div>
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
+        <div className="lg:hidden">
+          <StickyBonusSummary
+            hotel={hotel}
+            result={result}
+            start={start}
+            end={end}
+            travelers={travelers}
+            selectedIds={selectedIds}
+          />
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="space-y-4">
             {visibleActivities.map((activity) => (
               <ActivityListCard
@@ -119,38 +195,17 @@ export function PuzzleBuilder({
             ))}
           </div>
 
-          <aside className="xl:sticky xl:top-24 xl:self-start">
+          <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
             <StickyBonusSummary
               hotel={hotel}
               result={result}
               start={start}
               end={end}
               travelers={travelers}
+              selectedIds={selectedIds}
             />
           </aside>
         </div>
-      </div>
-
-      <div className="fixed inset-x-4 bottom-4 z-30 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 shadow-[0_20px_50px_rgba(15,23,40,0.18)] md:hidden">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--ink-500)]">
-              Puzzle
-            </div>
-            <div className="text-lg font-semibold text-[var(--ink-950)]">{result.progress}%</div>
-          </div>
-          <div className="text-right">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--ink-500)]">
-              Total
-            </div>
-            <div className="text-lg font-semibold text-[var(--ink-950)]">
-              {formatCurrency(result.totalClientAmount)}
-            </div>
-          </div>
-        </div>
-        {isPending ? (
-          <div className="mt-2 text-xs text-[var(--ink-600)]">Mise a jour...</div>
-        ) : null}
       </div>
     </section>
   );

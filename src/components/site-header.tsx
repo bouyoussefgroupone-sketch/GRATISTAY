@@ -1,13 +1,35 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { getCurrentDemoUser, AUTH_CHANGE_EVENT } from "@/lib/demo-auth";
 import { publicNavigation } from "@/lib/site-config";
 
 export function SiteHeader() {
+  const [customerName, setCustomerName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const syncUser = () => {
+      const user = getCurrentDemoUser();
+      setCustomerName(user?.firstName ?? null);
+    };
+
+    syncUser();
+    window.addEventListener(AUTH_CHANGE_EVENT, syncUser);
+    window.addEventListener("storage", syncUser);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncUser);
+      window.removeEventListener("storage", syncUser);
+    };
+  }, []);
+
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[rgba(244,247,251,0.92)] backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[rgba(246,248,249,0.92)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--brand-700)] text-sm font-bold tracking-[0.22em] text-white">
+          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--brand-800)] text-sm font-bold tracking-[0.22em] text-white shadow-[var(--shadow-soft)]">
             GS
           </div>
           <div>
@@ -32,7 +54,7 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/search?destination=marrakech&travelers=2"
+            href="/search"
             className="hidden items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2.5 text-sm font-medium text-[var(--ink-800)] transition hover:bg-[var(--surface-muted)] md:inline-flex"
           >
             <Search className="h-4 w-4" />
@@ -40,9 +62,9 @@ export function SiteHeader() {
           </Link>
           <Link
             href="/account"
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-700)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--brand-600)]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-800)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--brand-700)]"
           >
-            Connexion
+            {customerName ? `Mon compte, ${customerName}` : "Connexion"}
           </Link>
         </div>
       </div>

@@ -4,9 +4,14 @@ import { SearchBar } from "@/components/search-bar";
 import { SectionHeading } from "@/components/section-heading";
 import { SiteFrame } from "@/components/site-frame";
 import { findDestination, getHotelsByDestination } from "@/lib/catalog";
+import { clampTravelers, normalizeTravelWindow } from "@/lib/travel";
 
 function getString(value: string | string[] | undefined, fallback: string) {
   return typeof value === "string" ? value : fallback;
+}
+
+function getOptionalString(value: string | string[] | undefined) {
+  return typeof value === "string" ? value : undefined;
 }
 
 export default async function SearchPage({
@@ -16,9 +21,10 @@ export default async function SearchPage({
 }) {
   const params = await searchParams;
   const destination = findDestination(getString(params.destination, "marrakech"));
-  const travelers = getString(params.travelers, "2");
-  const start = getString(params.start, "2026-06-14");
-  const end = getString(params.end, "2026-06-17");
+  const travelers = String(clampTravelers(getString(params.travelers, "2")));
+  const normalizedWindow = normalizeTravelWindow(getOptionalString(params.start), getOptionalString(params.end));
+  const start = normalizedWindow.start;
+  const end = normalizedWindow.end;
   const hotels = getHotelsByDestination(destination.slug);
 
   return (

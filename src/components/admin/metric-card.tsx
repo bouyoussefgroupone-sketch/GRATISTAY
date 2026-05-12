@@ -1,9 +1,9 @@
 import type { AdminMetric } from "@/types/domain";
 
 const accentClass = {
-  teal: "bg-[#e7f8f7] text-[#0f766e]",
-  amber: "bg-[#fff4db] text-[#b45309]",
-  rose: "bg-[#fff0f5] text-[#be185d]",
+  teal: "bg-[#e8f7f4] text-[#0f6c67]",
+  amber: "bg-[#fff5e6] text-[#94640f]",
+  rose: "bg-[#fff1f1] text-[#b95f67]",
 };
 
 export function MetricCard({ metric }: { metric: AdminMetric }) {

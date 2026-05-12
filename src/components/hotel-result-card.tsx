@@ -18,9 +18,10 @@ export function HotelResultCard({
   travelers,
 }: HotelResultCardProps) {
   const bonusHref = `/bonus-stay?hotel=${hotel.slug}&travelers=${travelers}&start=${start}&end=${end}`;
+  const detailHref = `/hotels/${hotel.slug}?travelers=${travelers}&start=${start}&end=${end}`;
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface)] shadow-sm">
+    <article className="overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
       <div className="grid gap-0 lg:grid-cols-[300px_1fr_220px]">
         <div className="relative min-h-60">
           <Image
@@ -46,7 +47,7 @@ export function HotelResultCard({
                 {hotel.district}
               </div>
             </div>
-            <div className="rounded-2xl bg-[var(--brand-700)] px-3 py-2 text-right text-white">
+            <div className="rounded-2xl bg-[var(--brand-800)] px-3 py-2 text-right text-white shadow-[var(--shadow-soft)]">
               <div className="flex items-center gap-1 text-base font-semibold">
                 <Star className="h-4 w-4 fill-current" />
                 {hotel.rating}
@@ -91,14 +92,14 @@ export function HotelResultCard({
 
           <div className="mt-6 space-y-3">
             <Link
-              href={`/hotels/${hotel.slug}`}
+              href={detailHref}
               className="inline-flex w-full items-center justify-center rounded-xl border border-[var(--line)] px-4 py-3 text-sm font-semibold text-[var(--ink-900)] transition hover:bg-[var(--surface)]"
             >
               Voir cet hotel
             </Link>
             <Link
               href={bonusHref}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--brand-700)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--brand-600)]"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--brand-800)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--brand-700)]"
             >
               Choisir cet hotel
             </Link>

@@ -4,6 +4,7 @@ import { ArrowRight, MapPin, ShieldCheck, Star } from "lucide-react";
 import { SiteFrame } from "@/components/site-frame";
 import { destinations, hotels } from "@/data/demo-data";
 import { findHotel } from "@/lib/catalog";
+import { clampTravelers, normalizeTravelWindow } from "@/lib/travel";
 import { notFound } from "next/navigation";
 
 export function generateStaticParams() {
@@ -12,15 +13,27 @@ export function generateStaticParams() {
 
 export default async function HotelPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { slug } = await params;
+  const query = await searchParams;
   const hotel = findHotel(slug);
 
   if (!hotel) {
     notFound();
   }
+
+  const travelers = clampTravelers(
+    typeof query.travelers === "string" ? query.travelers : "2",
+  );
+  const normalizedWindow = normalizeTravelWindow(
+    typeof query.start === "string" ? query.start : undefined,
+    typeof query.end === "string" ? query.end : undefined,
+  );
+  const bonusHref = `/bonus-stay?hotel=${hotel.slug}&travelers=${travelers}&start=${normalizedWindow.start}&end=${normalizedWindow.end}`;
 
   const destination =
     destinations.find((item) => item.slug === hotel.destinationSlug) ?? destinations[0];
@@ -67,13 +80,13 @@ export default async function HotelPage({
               </div>
               <div className="mt-6 space-y-3">
                 <div className="inline-flex items-center gap-2 text-sm text-[var(--ink-700)]">
-                  <ShieldCheck className="h-4 w-4 text-[var(--brand-700)]" />
+                  <ShieldCheck className="h-4 w-4 text-[var(--brand-800)]" />
                   {hotel.nightsIncluded} nuits bonus eligibles
                 </div>
               </div>
               <Link
-                href={`/bonus-stay?hotel=${hotel.slug}&travelers=2&start=2026-06-14&end=2026-06-17`}
-                className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-700)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--brand-600)]"
+                href={bonusHref}
+                className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-800)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--brand-700)]"
               >
                 Construire ce sejour
                 <ArrowRight className="h-4 w-4" />

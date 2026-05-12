@@ -1,7 +1,7 @@
 export const publicNavigation = [
   { href: "/", label: "Accueil" },
-  { href: "/search?destination=marrakech&travelers=2", label: "Destinations" },
-  { href: "/bonus-stay?hotel=riad-horizon-marrakech&travelers=2", label: "Bonus Stay" },
+  { href: "/search", label: "Destinations" },
+  { href: "/bonus-stay?hotel=riad-horizon-marrakech", label: "Bonus Stay" },
   { href: "/support", label: "Support" },
 ];
 

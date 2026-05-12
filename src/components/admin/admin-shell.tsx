@@ -9,7 +9,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-[#eef3f8] text-[var(--ink-900)]">
+    <div className="min-h-screen bg-[var(--canvas)] text-[var(--ink-900)]">
       <div className="mx-auto grid min-h-screen max-w-[1600px] lg:grid-cols-[250px_1fr]">
         <aside className="border-b border-[var(--line)] bg-[var(--surface)] p-6 lg:border-r lg:border-b-0">
           <Link href="/admin" className="block rounded-3xl border border-[var(--line)] bg-[var(--surface-muted)] p-5">
@@ -32,7 +32,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   href={item.href}
                   className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
                     active
-                      ? "bg-[var(--brand-700)] text-white"
+                      ? "bg-[var(--brand-800)] text-white"
                       : "text-[var(--ink-700)] hover:bg-[var(--surface-muted)] hover:text-[var(--ink-950)]"
                   }`}
                 >
