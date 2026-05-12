@@ -1,0 +1,671 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+  DELETED
+}
+
+enum PartnerType {
+  HOTEL
+  ACTIVITY
+  RESTAURANT
+  TRANSPORT
+  SPA
+  WORKSHOP
+}
+
+enum PartnerStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum HotelStatus {
+  ACTIVE
+  INACTIVE
+  SOLD_OUT
+}
+
+enum ActivityStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+enum BookingStatus {
+  DRAFT
+  PUZZLE_IN_PROGRESS
+  BONUS_ACHIEVED
+  PENDING_PAYMENT
+  PAID
+  PENDING_CONFIRMATION
+  CONFIRMED
+  PARTIALLY_CONFIRMED
+  PDF_GENERATED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  CANCELLED
+}
+
+enum VoucherKind {
+  HOTEL
+  ACTIVITY
+  TRANSPORT
+  SERVICE
+}
+
+enum TicketStatus {
+  OPEN
+  WAITING_CUSTOMER
+  WAITING_PARTNER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketTopic {
+  PAYMENT_ISSUE
+  BOOKING_CHANGE
+  CANCELLATION
+  ACTIVITY_ISSUE
+  HOTEL_ISSUE
+  INFORMATION_REQUEST
+  OTHER
+}
+
+enum CampaignChannel {
+  FACEBOOK
+  INSTAGRAM
+  GOOGLE
+  TIKTOK
+  INFLUENCER
+  EMAIL
+  OTHER
+}
+
+enum PdfStatus {
+  PENDING
+  GENERATED
+  FAILED
+}
+
+enum AuditActorType {
+  SYSTEM
+  USER
+  ADMIN
+  EMPLOYEE
+}
+
+model User {
+  id                 String          @id @default(cuid())
+  email              String          @unique
+  passwordHash       String
+  firstName          String?
+  lastName           String?
+  phone              String?
+  locale             String          @default("fr")
+  preferredCurrency  String          @default("EUR")
+  status             UserStatus      @default(ACTIVE)
+  lastLoginAt        DateTime?
+  customerProfile    CustomerProfile?
+  employeeProfile    EmployeeProfile?
+  roles              UserRole[]
+  bookings           Booking[]
+  supportTickets     SupportTicket[] @relation("SupportTicketRequester")
+  supportMessages    SupportMessage[]
+  auditLogs          AuditLog[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  name        String
+  description String?
+  permissions RolePermission[]
+  users       UserRole[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  name        String
+  description String?
+  roles       RolePermission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model UserRole {
+  id         String   @id @default(cuid())
+  userId     String
+  roleId     String
+  assignedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model CustomerProfile {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  marketingConsent     Boolean  @default(false)
+  emergencyContactName String?
+  emergencyContactPhone String?
+  passportCountry      String?
+  notes                String?
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model EmployeeProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  department        String?
+  title             String?
+  canViewFinancials Boolean  @default(false)
+  isTwoFactorEnabled Boolean @default(false)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Country {
+  id           String        @id @default(cuid())
+  name         String
+  iso2         String        @unique
+  iso3         String        @unique
+  currencyCode String
+  locale       String?
+  cities       City[]
+  destinations Destination[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model City {
+  id           String        @id @default(cuid())
+  countryId    String
+  name         String
+  slug         String        @unique
+  timezone     String?
+  country      Country       @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  districts    District[]
+  destinations Destination[]
+  hotels       Hotel[]
+  activities   Activity[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model District {
+  id        String   @id @default(cuid())
+  cityId    String
+  name      String
+  slug      String
+  city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  hotels    Hotel[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cityId, slug])
+}
+
+model Destination {
+  id              String          @id @default(cuid())
+  countryId       String
+  cityId          String
+  slug            String          @unique
+  name            String
+  heroTitle       String?
+  heroDescription String?
+  isActive        Boolean         @default(true)
+  teaserImageUrl  String?
+  country         Country         @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  city            City            @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  hotels          Hotel[]
+  activities      Activity[]
+  campaigns       Campaign[]
+  bookings        Booking[]
+  puzzleRuleSets  PuzzleRuleSet[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Partner {
+  id                String         @id @default(cuid())
+  name              String
+  slug              String         @unique
+  type              PartnerType
+  status            PartnerStatus  @default(ACTIVE)
+  email             String?
+  phone             String?
+  websiteUrl        String?
+  contactName       String?
+  contractReference String?
+  commissionRate    Decimal?       @db.Decimal(5, 2)
+  notes             String?
+  hotels            Hotel[]
+  activities        Activity[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Hotel {
+  id                    String                 @id @default(cuid())
+  destinationId         String
+  cityId                String
+  districtId            String?
+  partnerId             String?
+  slug                  String                 @unique
+  name                  String
+  description           String
+  starRating            Int
+  status                HotelStatus            @default(ACTIVE)
+  addressLine1          String
+  addressLine2          String?
+  postalCode            String?
+  latitude              Decimal?               @db.Decimal(10, 7)
+  longitude             Decimal?               @db.Decimal(10, 7)
+  heroImageUrl          String?
+  galleryUrls           String[]
+  publicIndicativePrice Decimal?               @db.Decimal(10, 2)
+  negotiatedNightlyCost Decimal                @db.Decimal(10, 2)
+  negotiatedPackageCost Decimal?               @db.Decimal(10, 2)
+  includedGuests        Int                    @default(2)
+  isBonusEligible       Boolean                @default(true)
+  terms                 String?
+  amenities             String[]
+  destination           Destination            @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  city                  City                   @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  district              District?              @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  partner               Partner?               @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  rooms                 HotelRoom[]
+  packages              HotelPackage[]
+  includedServices      HotelIncludedService[]
+  bookings              Booking[]
+  bookingHotels         BookingHotel[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+}
+
+model HotelRoom {
+  id               String   @id @default(cuid())
+  hotelId          String
+  name             String
+  maxAdults        Int
+  maxChildren      Int      @default(0)
+  baseOccupancy    Int
+  bedConfiguration String?
+  inventory        Int      @default(0)
+  hotel            Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model HotelPackage {
+  id                    String   @id @default(cuid())
+  hotelId               String
+  name                  String
+  description           String?
+  minNights             Int      @default(1)
+  maxNights             Int?
+  includedGuests        Int      @default(2)
+  negotiatedPackageCost Decimal  @db.Decimal(10, 2)
+  hotel                 Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model HotelIncludedService {
+  id          String   @id @default(cuid())
+  hotelId     String
+  label       String
+  description String?
+  hotel       Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id               String               @id @default(cuid())
+  key              String               @unique
+  slug             String               @unique
+  name             String
+  description      String?
+  isEssentialGroup Boolean              @default(false)
+  minSelections    Int                  @default(0)
+  sortOrder        Int                  @default(0)
+  activities       Activity[]
+  ruleSets         PuzzleCategoryRule[]
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+}
+
+model Activity {
+  id                 String               @id @default(cuid())
+  destinationId      String
+  cityId             String
+  categoryId         String
+  partnerId          String?
+  slug               String               @unique
+  name               String
+  description        String
+  shortDescription   String?
+  status             ActivityStatus       @default(ACTIVE)
+  priceAdult         Decimal              @db.Decimal(10, 2)
+  priceChild         Decimal?             @db.Decimal(10, 2)
+  supplierCost       Decimal              @db.Decimal(10, 2)
+  marginAmount       Decimal?             @db.Decimal(10, 2)
+  marginRate         Decimal?             @db.Decimal(5, 2)
+  puzzleContribution Int                  @default(10)
+  durationLabel      String?
+  addressLine1       String?
+  phone              String?
+  meetingPoint       String?
+  latitude           Decimal?             @db.Decimal(10, 7)
+  longitude          Decimal?             @db.Decimal(10, 7)
+  cancellationPolicy String?
+  galleryUrls        String[]
+  destination        Destination          @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  city               City                 @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  category           Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  partner            Partner?             @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  schedules          ActivitySchedule[]
+  availabilities     ActivityAvailability[]
+  bookingActivities  BookingActivity[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+}
+
+model ActivitySchedule {
+  id         String   @id @default(cuid())
+  activityId String
+  startsAt   DateTime
+  endsAt     DateTime?
+  timezone   String?
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ActivityAvailability {
+  id             String   @id @default(cuid())
+  activityId     String
+  date           DateTime
+  availableSpots Int
+  isClosed       Boolean  @default(false)
+  activity       Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([activityId, date])
+}
+
+model PuzzleRuleSet {
+  id                     String               @id @default(cuid())
+  destinationId          String?
+  name                   String
+  isDefault              Boolean              @default(false)
+  minEssentialSelections Int                  @default(3)
+  minActivities          Int                  @default(4)
+  minCartAmount          Decimal              @db.Decimal(10, 2)
+  minMarginRate          Decimal              @db.Decimal(5, 2)
+  unlockThreshold        Int                  @default(100)
+  financialWeight        Int                  @default(20)
+  categoryWeight         Int                  @default(20)
+  contributionWeight     Int                  @default(40)
+  availabilityWeight     Int                  @default(20)
+  destination            Destination?         @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  categoryRules          PuzzleCategoryRule[]
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+}
+
+model PuzzleCategoryRule {
+  id             String        @id @default(cuid())
+  ruleSetId      String
+  categoryId     String
+  minimumChoices Int           @default(0)
+  scoreWeight    Int           @default(20)
+  ruleSet        PuzzleRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+  category       Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleSetId, categoryId])
+}
+
+model Booking {
+  id                     String            @id @default(cuid())
+  userId                 String
+  destinationId          String
+  hotelId                String?
+  status                 BookingStatus     @default(DRAFT)
+  paymentStatus          PaymentStatus     @default(PENDING)
+  reference              String            @unique
+  checkInDate            DateTime
+  checkOutDate           DateTime
+  adults                 Int               @default(2)
+  children               Int               @default(0)
+  totalClientAmount      Decimal           @db.Decimal(10, 2)
+  hotelInternalCost      Decimal?          @db.Decimal(10, 2)
+  activitiesInternalCost Decimal?          @db.Decimal(10, 2)
+  grossMarginAmount      Decimal?          @db.Decimal(10, 2)
+  netMarginAmount        Decimal?          @db.Decimal(10, 2)
+  marginRate             Decimal?          @db.Decimal(5, 2)
+  bonusProgress          Int               @default(0)
+  bonusUnlockedAt        DateTime?
+  notes                  String?
+  user                   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination            Destination       @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  hotel                  Hotel?            @relation(fields: [hotelId], references: [id], onDelete: SetNull)
+  travelers              BookingTraveler[]
+  bookingHotel           BookingHotel?
+  bookingActivities      BookingActivity[]
+  payments               Payment[]
+  vouchers               Voucher[]
+  generatedPdfs          GeneratedPDF[]
+  supportTickets         SupportTicket[]
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+}
+
+model BookingTraveler {
+  id           String   @id @default(cuid())
+  bookingId    String
+  firstName    String
+  lastName     String
+  dateOfBirth  DateTime?
+  travelerType String
+  booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model BookingHotel {
+  id                  String   @id @default(cuid())
+  bookingId           String   @unique
+  hotelId             String
+  hotelNameSnapshot   String
+  roomNameSnapshot    String?
+  internalCostSnapshot Decimal @db.Decimal(10, 2)
+  booking             Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  hotel               Hotel    @relation(fields: [hotelId], references: [id], onDelete: Restrict)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model BookingActivity {
+  id                String   @id @default(cuid())
+  bookingId         String
+  activityId        String
+  travelersCount    Int
+  unitClientPrice   Decimal  @db.Decimal(10, 2)
+  unitSupplierCost  Decimal  @db.Decimal(10, 2)
+  totalClientAmount Decimal  @db.Decimal(10, 2)
+  totalSupplierCost Decimal  @db.Decimal(10, 2)
+  voucherCode       String?
+  booking           Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  activity          Activity @relation(fields: [activityId], references: [id], onDelete: Restrict)
+  vouchers          Voucher[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Payment {
+  id               String        @id @default(cuid())
+  bookingId        String
+  provider         String
+  providerReference String?
+  status           PaymentStatus @default(PENDING)
+  amount           Decimal       @db.Decimal(10, 2)
+  currency         String        @default("EUR")
+  paidAt           DateTime?
+  refundedAt       DateTime?
+  booking          Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model Voucher {
+  id                String           @id @default(cuid())
+  bookingId         String
+  bookingActivityId String?
+  kind              VoucherKind
+  code              String           @unique
+  fileUrl           String?
+  booking           Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingActivity   BookingActivity? @relation(fields: [bookingActivityId], references: [id], onDelete: SetNull)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model GeneratedPDF {
+  id          String    @id @default(cuid())
+  bookingId   String
+  fileUrl     String?
+  status      PdfStatus @default(PENDING)
+  version     Int       @default(1)
+  generatedAt DateTime?
+  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model SupportTicket {
+  id           String           @id @default(cuid())
+  requesterId  String
+  bookingId    String?
+  reference    String           @unique
+  subject      String
+  topic        TicketTopic
+  status       TicketStatus     @default(OPEN)
+  priority     String           @default("normal")
+  assignedToId String?
+  requester    User             @relation("SupportTicketRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  booking      Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  messages     SupportMessage[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model SupportMessage {
+  id            String        @id @default(cuid())
+  ticketId      String
+  authorId      String?
+  isInternal    Boolean       @default(false)
+  message       String
+  attachmentUrl String?
+  ticket        SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author        User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Campaign {
+  id             String           @id @default(cuid())
+  destinationId  String?
+  name           String
+  channel        CampaignChannel
+  startDate      DateTime
+  endDate        DateTime
+  budget         Decimal?         @db.Decimal(10, 2)
+  promoCodeId    String?
+  trackingCode   String?
+  landingPageUrl String?
+  impressions    Int              @default(0)
+  clicks         Int              @default(0)
+  conversions    Int              @default(0)
+  revenueAmount  Decimal?         @db.Decimal(10, 2)
+  destination    Destination?     @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  promoCode      PromoCode?       @relation(fields: [promoCodeId], references: [id], onDelete: SetNull)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model PromoCode {
+  id            String     @id @default(cuid())
+  code          String     @unique
+  description   String?
+  discountType  String
+  discountValue Decimal    @db.Decimal(10, 2)
+  usageLimit    Int?
+  startsAt      DateTime?
+  endsAt        DateTime?
+  campaigns     Campaign[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model AuditLog {
+  id          String         @id @default(cuid())
+  actorId     String?
+  actorType   AuditActorType
+  action      String
+  entityType  String
+  entityId    String
+  description String?
+  metadata    Json?
+  actor       User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now())
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  scope       String   @default("global")
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

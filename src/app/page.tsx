@@ -1,65 +1,157 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Building2, ShieldCheck, Sparkles } from "lucide-react";
+import { HotelCard } from "@/components/hotel-card";
+import { SearchBar } from "@/components/search-bar";
+import { SectionHeading } from "@/components/section-heading";
+import { SiteFrame } from "@/components/site-frame";
+import { destinations, hotels } from "@/data/demo-data";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <SiteFrame>
+      <section className="px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="rounded-[32px] border border-[var(--line)] bg-[var(--surface)] p-8 shadow-sm md:p-10">
+              <div className="inline-flex rounded-full bg-[var(--brand-50)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-700)]">
+                Bonus Stay
+              </div>
+              <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-[var(--ink-950)] sm:text-5xl">
+                Recherchez un hotel. Ajoutez vos activites. Debloquez le sejour.
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--ink-700)]">
+                Une interface simple, rapide et orientee conversion.
+              </p>
+              <div className="mt-8">
+                <SearchBar />
+              </div>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {["Hotels eligibles", "4 pieces puzzle", "Paiement securise"].map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-full border border-[var(--line)] bg-[var(--surface-muted)] px-3 py-2 text-sm text-[var(--ink-800)]"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+              {[
+                {
+                  icon: Building2,
+                  title: "Hotels partenaires",
+                  copy: "Choix direct et rapide.",
+                },
+                {
+                  icon: Sparkles,
+                  title: "Puzzle Bonus Stay",
+                  copy: "4 pieces a completer.",
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "Paiement simple",
+                  copy: "Panier clair, paiement rapide.",
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-[28px] border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm"
+                >
+                  <item.icon className="h-8 w-8 text-[var(--brand-700)]" />
+                  <div className="mt-4 text-lg font-semibold text-[var(--ink-950)]">
+                    {item.title}
+                  </div>
+                  <div className="mt-2 text-sm text-[var(--ink-700)]">{item.copy}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-10 rounded-[28px] border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm">
+            <div className="grid gap-3 md:grid-cols-3">
+              {destinations.map((destination) => (
+                <Link
+                  key={destination.slug}
+                  href={`/search?destination=${destination.slug}&travelers=2&start=2026-06-14&end=2026-06-17`}
+                  className="rounded-2xl border border-[var(--line)] bg-[var(--surface-muted)] px-4 py-4 text-sm font-medium text-[var(--ink-800)] transition hover:border-[var(--brand-500)] hover:bg-[var(--surface)]"
+                >
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--ink-500)]">
+                    {destination.country}
+                  </div>
+                  <div className="mt-1 text-lg font-semibold text-[var(--ink-950)]">
+                    {destination.city}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeading
+            title="Destinations populaires"
+            subtitle="Des sejours courts, simples a comprendre et faciles a reserver."
+          />
+
+          <div className="mt-6 grid gap-5 lg:grid-cols-3">
+            {destinations.map((destination) => (
+              <Link
+                key={destination.slug}
+                href={`/search?destination=${destination.slug}&travelers=2&start=2026-06-14&end=2026-06-17`}
+                className="overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface)] shadow-sm"
+              >
+                <div
+                  className="h-48 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${destination.imageUrl})` }}
+                />
+                <div className="space-y-3 p-5">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--ink-500)]">
+                    {destination.country}
+                  </div>
+                  <h3 className="text-2xl font-semibold text-[var(--ink-950)]">
+                    {destination.city}
+                  </h3>
+                  <p className="text-sm leading-6 text-[var(--ink-700)]">{destination.heroTag}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeading
+            title="Hotels mis en avant"
+            subtitle="Des fiches plus directes, plus visuelles et plus proches d'un OTA."
+          />
+          <div className="mt-6 grid gap-6 xl:grid-cols-3">
+            {hotels.slice(0, 3).map((hotel) => (
+              <HotelCard key={hotel.id} hotel={hotel} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl rounded-[28px] border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl bg-[var(--surface-muted)] px-4 py-4 text-sm text-[var(--ink-700)]">
+              Hotels partenaires
+            </div>
+            <div className="rounded-2xl bg-[var(--surface-muted)] px-4 py-4 text-sm text-[var(--ink-700)]">
+              Activites par categorie
+            </div>
+            <div className="rounded-2xl bg-[var(--surface-muted)] px-4 py-4 text-sm text-[var(--ink-700)]">
+              Paiement securise
+            </div>
+          </div>
+        </div>
+      </section>
+    </SiteFrame>
   );
 }
