@@ -9,6 +9,7 @@ import {
   type PDFPage,
 } from "pdf-lib";
 import { bookingRecords, destinations, hotels } from "@/data/demo-data";
+import type { DemoCheckoutDetails } from "@/lib/demo-checkout";
 import { formatCurrency, formatFriendlyDate } from "@/lib/format";
 
 type DemoExperience = {
@@ -113,6 +114,23 @@ const palette = {
   line: rgb(0.86, 0.89, 0.91),
   white: rgb(1, 1, 1),
 };
+
+interface ResolvedPdfPayload {
+  booking: {
+    reference: string;
+    startDate: string;
+    endDate: string;
+    travelers: number;
+    totalPaid: number;
+    paymentStatus: string;
+    bonusProgress: number;
+  };
+  hotel: (typeof hotels)[number];
+  destination: (typeof destinations)[number];
+  experiences: DemoExperience[];
+  voucherCode: string;
+  supportPhone: string;
+}
 
 function wrapText(text: string, maxWidth: number, font: PDFFont, size: number) {
   const words = text.split(/\s+/).filter(Boolean);
@@ -242,7 +260,7 @@ async function embedLocalImage(pdf: PDFDocument, imageUrl: string) {
   return pdf.embedJpg(bytes);
 }
 
-function findBookingPayload(reference: string) {
+function findBookingPayload(reference: string): ResolvedPdfPayload | null {
   const booking = bookingRecords.find((entry) => entry.reference === reference);
   if (!booking) {
     return null;
@@ -268,8 +286,7 @@ function buildFilename(reference: string) {
   return `gratistay-${reference.toLowerCase()}.pdf`;
 }
 
-export async function generateDemoTravelPdf(reference: string) {
-  const payload = findBookingPayload(reference);
+async function renderTravelPdf(payload: ResolvedPdfPayload | null) {
   if (!payload) {
     return null;
   }
@@ -346,7 +363,7 @@ export async function generateDemoTravelPdf(reference: string) {
     color: palette.brand,
   });
   drawWrappedText(cover, {
-    text: `${formatFriendlyDate(payload.booking.startDate)} au ${formatFriendlyDate(payload.booking.endDate)} · ${payload.booking.travelers} voyageurs`,
+    text: `${formatFriendlyDate(payload.booking.startDate)} au ${formatFriendlyDate(payload.booking.endDate)} - ${payload.booking.travelers} voyageurs`,
     x: 72,
     y: 304,
     maxWidth: 420,
@@ -460,7 +477,7 @@ export async function generateDemoTravelPdf(reference: string) {
     font: bold,
     color: palette.text,
   });
-  summary.drawText(`${payload.destination.label} · ${payload.hotel.district}`, {
+  summary.drawText(`${payload.destination.label} - ${payload.hotel.district}`, {
     x: 230,
     y: 526,
     size: 12,
@@ -605,6 +622,29 @@ export async function generateDemoTravelPdf(reference: string) {
 
   return {
     bytes: await pdf.save(),
-    filename: buildFilename(reference),
+    filename: buildFilename(payload.booking.reference),
   };
+}
+
+export async function generateDemoTravelPdf(reference: string) {
+  return renderTravelPdf(findBookingPayload(reference));
+}
+
+export async function generateCheckoutTravelPdf(details: DemoCheckoutDetails) {
+  return renderTravelPdf({
+    booking: {
+      reference: details.reference,
+      startDate: details.startDate,
+      endDate: details.endDate,
+      travelers: details.travelers,
+      totalPaid: details.totalPaid,
+      paymentStatus: details.paymentStatus,
+      bonusProgress: details.bonusProgress,
+    },
+    hotel: details.hotel,
+    destination: details.destination,
+    experiences: details.itinerary,
+    voucherCode: details.voucherCode,
+    supportPhone: details.supportPhone,
+  });
 }
